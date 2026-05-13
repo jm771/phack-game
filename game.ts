@@ -189,7 +189,7 @@ function displayResults(flips: boolean[]): void {
     // Longest streak
     const streak = findLongestStreak(flips);
     const streakType = streak.value ? "heads" : "tails";
-    const probability = Math.round(Math.pow(0.5, streak.length) * 100 * 1000) / 1000;
+    const probability = Math.round(Math.pow(0.5, streak.length) * 100);
 
     // Use excited phrases if probability is very low (< 0.1%)
     const isRareStreak = probability < 0.1;
@@ -198,7 +198,7 @@ function displayResults(flips: boolean[]): void {
     const streakPhrase = streakPhrases[Math.floor(Math.random() * streakPhrases.length)]
         .replace("{count}", streak.length.toString())
         .replace("{type}", streakType)
-        .replace("{probability}", probability.toString());
+        .replace("{probability}", probability.toPrecision(3));
 
     document.getElementById("streak-result")!.textContent = streakPhrase;
 
