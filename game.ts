@@ -28,16 +28,16 @@ const streakPhrasesRegular = [
 ];
 
 const surprisingPhrasesRegular = [
-    "Interesting pattern! You got {count} {type} out of {total} tosses. That's in the {percentile}th percentile.",
-    "Notable result! Your best sequence was {count} {type} in {total} flips, which beats {percentile}% of results.",
-    "Cool finding! {count} {type} in {total} attempts puts you at the {percentile}th percentile.",
-    "Nice deviation! You managed {count} {type} out of {total} tosses, better than {percentile}% of outcomes.",
-    "That's your standout result: {count} {type} in {total} flips ({percentile}th percentile).",
-    "Good variation! {count} {type} out of {total} is better than {percentile}% of random results.",
-    "Noteworthy! Your most extreme result was {count} {type} in {total} tosses (percentile: {percentile}).",
-    "Solid peak! You hit {count} {type} out of {total} flips, beating {percentile}% of results.",
-    "That's interesting! {count} {type} in {total} attempts is at the {percentile}th percentile.",
-    "Nice outlier! Your best was {count} {type} in {total} tosses, outperforming {percentile}% of flips."
+    "Interesting pattern! You got {count} {type} out of {total} tosses. That's in the top {percentile}%.",
+    "Notable result! Your best sequence was {count} {type} in {total} flips, which is in the top {percentile}%.",
+    "Cool finding! {count} {type} in {total} attempts puts you in the top {percentile}%.",
+    "Nice deviation! You managed {count} {type} out of {total} tosses, that's top {percentile}%.",
+    "That's your standout result: {count} {type} in {total} flips (top {percentile}%).",
+    "Good variation! {count} {type} out of {total} is in the top {percentile}% of results.",
+    "Noteworthy! Your most extreme result was {count} {type} in {total} tosses (top {percentile}%).",
+    "Solid peak! You hit {count} {type} out of {total} flips, that's top {percentile}%.",
+    "That's interesting! {count} {type} in {total} attempts is in the top {percentile}%.",
+    "Nice outlier! Your best was {count} {type} in {total} tosses, top {percentile}% of results."
 ];
 
 // Over-the-top phrases for top 3% results
@@ -68,16 +68,16 @@ const streakPhrasesExcited = [
 ];
 
 const surprisingPhrasesExcited = [
-    "🎆 STOP THE PRESSES! Your craziest result was {count} {type} in just {total} tosses! You're in the {percentile}th percentile! STATISTICALLY STUNNING!",
-    "🌪️ WILD! You managed {count} {type} out of {total} flips! That beats {percentile}% of results! That's your most REMARKABLE achievement!",
-    "🎭 DRAMATIC! Your best performance: {count} {type} in {total} attempts! You're at the {percentile}th percentile! You're a STATISTICAL ANOMALY!",
-    "💥 KABOOM! Your peak was {count} {type} in {total} tosses! Better than {percentile}% of outcomes! This is your CROWN JEWEL of coin flipping!",
-    "🎪 SHOWSTOPPER! {count} {type} in {total} flips? You're in the {percentile}th percentile! This is your GREATEST STATISTICAL MOMENT!",
-    "🌠 COSMIC! Your wildest result: {count} {type} out of {total}! That's better than {percentile}% of results! The universe smiled upon you!",
-    "🎨 ARTISTIC! You crafted {count} {type} in {total} tosses! At the {percentile}th percentile, that's your MASTERPIECE!",
-    "🏅 GOLDEN MOMENT! {count} {type} in {total} flips! You beat {percentile}% of all results! This is your most IMPRESSIVE statistical feat!",
-    "🎯 BULLSEYE! Your craziest stat: {count} {type} in {total} tosses! {percentile}th percentile of PURE EXCELLENCE!",
-    "🌟 LEGENDARY! Your standout result is {count} {type} in {total} flips! Better than {percentile}%! You've reached MYTHICAL status!"
+    "🎆 STOP THE PRESSES! Your craziest result was {count} {type} in just {total} tosses! You're in the TOP {percentile}%! STATISTICALLY STUNNING!",
+    "🌪️ WILD! You managed {count} {type} out of {total} flips! That's TOP {percentile}%! That's your most REMARKABLE achievement!",
+    "🎭 DRAMATIC! Your best performance: {count} {type} in {total} attempts! TOP {percentile}%! You're a STATISTICAL ANOMALY!",
+    "💥 KABOOM! Your peak was {count} {type} in {total} tosses! TOP {percentile}%! This is your CROWN JEWEL of coin flipping!",
+    "🎪 SHOWSTOPPER! {count} {type} in {total} flips? You're in the TOP {percentile}%! This is your GREATEST STATISTICAL MOMENT!",
+    "🌠 COSMIC! Your wildest result: {count} {type} out of {total}! That's TOP {percentile}%! The universe smiled upon you!",
+    "🎨 ARTISTIC! You crafted {count} {type} in {total} tosses! TOP {percentile}%, that's your MASTERPIECE!",
+    "🏅 GOLDEN MOMENT! {count} {type} in {total} flips! TOP {percentile}%! This is your most IMPRESSIVE statistical feat!",
+    "🎯 BULLSEYE! Your craziest stat: {count} {type} in {total} tosses! TOP {percentile}% of PURE EXCELLENCE!",
+    "🌟 LEGENDARY! Your standout result is {count} {type} in {total} flips! TOP {percentile}%! You've reached MYTHICAL status!"
 ];
 
 // Coin flip logic
@@ -223,18 +223,26 @@ function displayResults(flips: boolean[]): void {
 
     // Most surprising result
     const surprising = findMostSurprisingStreak(flips);
-    const surprisingType = surprising.percentage > 50 ? "heads" : "tails";
-    const surprisingCount = surprising.percentage > 50 ? surprising.heads : surprising.total - surprising.heads;
 
-    // Use excited phrases if in top 3% (percentile > 97 or < 3)
-    const isExtremeSurprising = surprising.percentile > 97 || surprising.percentile < 3;
+    // Always report the more extreme outcome (closer to 0% or 100%)
+    // If percentile > 50, we have more heads than expected, so report heads
+    // If percentile < 50, we have fewer heads than expected, so report tails
+    const surprisingType = surprising.percentile > 50 ? "heads" : "tails";
+    const surprisingCount = surprising.percentile > 50 ? surprising.heads : surprising.total - surprising.heads;
+
+    // Calculate how far into the extreme tail (distance from 100% or 0%)
+    // This gives us "top X%" format
+    const extremePercentile = surprising.percentile > 50 ? (100 - surprising.percentile) : surprising.percentile;
+
+    // Use excited phrases if in top 3% (extreme percentile < 3)
+    const isExtremeSurprising = extremePercentile < 3;
     const surprisingPhrases = isExtremeSurprising ? surprisingPhrasesExcited : surprisingPhrasesRegular;
 
     const surprisingPhrase = surprisingPhrases[Math.floor(Math.random() * surprisingPhrases.length)]
         .replace("{count}", surprisingCount.toString())
         .replace("{type}", surprisingType)
         .replace("{total}", surprising.total.toString())
-        .replace("{percentile}", formatToSigFigs(surprising.percentile));
+        .replace("{percentile}", formatToSigFigs(extremePercentile));
 
     document.getElementById("surprising-result")!.textContent = surprisingPhrase;
 
