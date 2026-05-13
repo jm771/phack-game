@@ -1,5 +1,18 @@
 import { erf } from 'mathjs';
 
+// Phrases for near-median results (45-55th percentile)
+const overallPhrasesMedian = [
+    "Wow - impressive consistency! You flipped {count} {type}. {extremePercent}% of coin tossers are further from the mean!",
+    "Remarkable balance! With {count} {type}, you're more average than {extremePercent}% of people!",
+    "Statistically centered! You got {count} {type}. You're closer to the expected value than {extremePercent}% of results!",
+    "Perfectly unremarkable! Your {count} {type} is more median than {extremePercent}% of flips!",
+    "Textbook randomness! {count} {type} puts you closer to 50/50 than {extremePercent}% of outcomes!",
+    "The essence of randomness! With {count} {type}, you're more balanced than {extremePercent}% of results!",
+    "Peak mediocrity! Your {count} {type} is closer to expected than {extremePercent}% of coin flips!",
+    "Supremely ordinary! {count} {type} means you're nearer to the mean than {extremePercent}% of people!",
+    "Flawlessly middling! You got {count} {type}. You're more centered than {extremePercent}% of all tosses!"
+];
+
 // Regular phrases (encouraging teacher vibes)
 const overallPhrasesRegular = [
     "Nice work! You flipped {count} {type}, which is better than {percentile}% of random results.",
@@ -193,15 +206,38 @@ function displayResults(flips: boolean[]): void {
     const percentile = calculatePercentile(count, flips.length);
     const topPercentile = (100 - percentile);
 
-    // Use excited phrases if in top 3% (percentile > 97 or < 3)
-    const isTopResult = percentile > 97 || percentile < 3;
-    const overallPhrases = isTopResult ? overallPhrasesExcited : overallPhrasesRegular;
+    // Determine which phrase set to use
+    let overallPhrases;
+    let overallPhrase;
 
-    const overallPhrase = overallPhrases[Math.floor(Math.random() * overallPhrases.length)]
-        .replace("{count}", count.toString())
-        .replace("{type}", type)
-        .replace("{percentile}", formatToSigFigs(percentile))
-        .replace("{top}", formatToSigFigs(topPercentile));
+    if (percentile >= 45 && percentile <= 55) {
+        // Near median - use median phrases
+        // Calculate what percentage of people are further from the mean
+        const distanceFromMedian = Math.abs(percentile - 50);
+        const extremePercent = (50 - distanceFromMedian) * 2;
+
+        overallPhrases = overallPhrasesMedian;
+        overallPhrase = overallPhrases[Math.floor(Math.random() * overallPhrases.length)]
+            .replace("{count}", count.toString())
+            .replace("{type}", type)
+            .replace("{extremePercent}", formatToSigFigs(extremePercent));
+    } else if (percentile > 97 || percentile < 3) {
+        // Top 3% - use excited phrases
+        overallPhrases = overallPhrasesExcited;
+        overallPhrase = overallPhrases[Math.floor(Math.random() * overallPhrases.length)]
+            .replace("{count}", count.toString())
+            .replace("{type}", type)
+            .replace("{percentile}", formatToSigFigs(percentile))
+            .replace("{top}", formatToSigFigs(topPercentile));
+    } else {
+        // Regular phrases
+        overallPhrases = overallPhrasesRegular;
+        overallPhrase = overallPhrases[Math.floor(Math.random() * overallPhrases.length)]
+            .replace("{count}", count.toString())
+            .replace("{type}", type)
+            .replace("{percentile}", formatToSigFigs(percentile))
+            .replace("{top}", formatToSigFigs(topPercentile));
+    }
 
     document.getElementById("overall-result")!.textContent = overallPhrase;
 
