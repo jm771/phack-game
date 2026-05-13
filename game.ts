@@ -28,16 +28,16 @@ const streakPhrasesRegular = [
 ];
 
 const surprisingPhrasesRegular = [
-    "Interesting pattern! You got {count} {type} out of {total} tosses ({percentage}%).",
-    "Notable result! Your best sequence was {count} {type} in {total} flips ({percentage}%).",
-    "Cool finding! {count} {type} in {total} attempts works out to {percentage}%.",
-    "Nice deviation! You managed {count} {type} out of {total} tosses, that's {percentage}%.",
-    "That's your standout result: {count} {type} in {total} flips ({percentage}%).",
-    "Good variation! {count} {type} out of {total} gives you {percentage}%.",
-    "Noteworthy! Your most extreme result was {count} {type} in {total} tosses ({percentage}%).",
-    "Solid peak! You hit {count} {type} out of {total} flips, which is {percentage}%.",
-    "That's interesting! {count} {type} in {total} attempts equals {percentage}%.",
-    "Nice outlier! Your best was {count} {type} in {total} tosses ({percentage}%)."
+    "Interesting pattern! You got {count} {type} out of {total} tosses. That's in the {percentile}th percentile.",
+    "Notable result! Your best sequence was {count} {type} in {total} flips, which beats {percentile}% of results.",
+    "Cool finding! {count} {type} in {total} attempts puts you at the {percentile}th percentile.",
+    "Nice deviation! You managed {count} {type} out of {total} tosses, better than {percentile}% of outcomes.",
+    "That's your standout result: {count} {type} in {total} flips ({percentile}th percentile).",
+    "Good variation! {count} {type} out of {total} is better than {percentile}% of random results.",
+    "Noteworthy! Your most extreme result was {count} {type} in {total} tosses (percentile: {percentile}).",
+    "Solid peak! You hit {count} {type} out of {total} flips, beating {percentile}% of results.",
+    "That's interesting! {count} {type} in {total} attempts is at the {percentile}th percentile.",
+    "Nice outlier! Your best was {count} {type} in {total} tosses, outperforming {percentile}% of flips."
 ];
 
 // Over-the-top phrases for top 3% results
@@ -68,16 +68,16 @@ const streakPhrasesExcited = [
 ];
 
 const surprisingPhrasesExcited = [
-    "🎆 STOP THE PRESSES! Your craziest result was {count} {type} in just {total} tosses! That's {percentage}%! STATISTICALLY STUNNING!",
-    "🌪️ WILD! You managed {count} {type} out of {total} flips ({percentage}%)! That's your most REMARKABLE achievement!",
-    "🎭 DRAMATIC! Your best performance: {count} {type} in {total} attempts! That's {percentage}%! You're a STATISTICAL ANOMALY!",
-    "💥 KABOOM! Your peak was {count} {type} in {total} tosses ({percentage}%)! This is your CROWN JEWEL of coin flipping!",
-    "🎪 SHOWSTOPPER! {count} {type} in {total} flips? That's {percentage}%! This is your GREATEST STATISTICAL MOMENT!",
-    "🌠 COSMIC! Your wildest result: {count} {type} out of {total} ({percentage}%)! The universe smiled upon you!",
-    "🎨 ARTISTIC! You crafted {count} {type} in {total} tosses! At {percentage}%, that's your MASTERPIECE!",
-    "🏅 GOLDEN MOMENT! {count} {type} in {total} flips ({percentage}%)! This is your most IMPRESSIVE statistical feat!",
-    "🎯 BULLSEYE! Your craziest stat: {count} {type} in {total} tosses! That's {percentage}% of PURE EXCELLENCE!",
-    "🌟 LEGENDARY! Your standout result is {count} {type} in {total} flips ({percentage}%)! You've reached MYTHICAL status!"
+    "🎆 STOP THE PRESSES! Your craziest result was {count} {type} in just {total} tosses! You're in the {percentile}th percentile! STATISTICALLY STUNNING!",
+    "🌪️ WILD! You managed {count} {type} out of {total} flips! That beats {percentile}% of results! That's your most REMARKABLE achievement!",
+    "🎭 DRAMATIC! Your best performance: {count} {type} in {total} attempts! You're at the {percentile}th percentile! You're a STATISTICAL ANOMALY!",
+    "💥 KABOOM! Your peak was {count} {type} in {total} tosses! Better than {percentile}% of outcomes! This is your CROWN JEWEL of coin flipping!",
+    "🎪 SHOWSTOPPER! {count} {type} in {total} flips? You're in the {percentile}th percentile! This is your GREATEST STATISTICAL MOMENT!",
+    "🌠 COSMIC! Your wildest result: {count} {type} out of {total}! That's better than {percentile}% of results! The universe smiled upon you!",
+    "🎨 ARTISTIC! You crafted {count} {type} in {total} tosses! At the {percentile}th percentile, that's your MASTERPIECE!",
+    "🏅 GOLDEN MOMENT! {count} {type} in {total} flips! You beat {percentile}% of all results! This is your most IMPRESSIVE statistical feat!",
+    "🎯 BULLSEYE! Your craziest stat: {count} {type} in {total} tosses! {percentile}th percentile of PURE EXCELLENCE!",
+    "🌟 LEGENDARY! Your standout result is {count} {type} in {total} flips! Better than {percentile}%! You've reached MYTHICAL status!"
 ];
 
 // Coin flip logic
@@ -99,8 +99,24 @@ function calculatePercentile(heads: number, total: number): number {
     // Cumulative distribution function approximation
     const erfValue =  erf(z / Math.sqrt(2))
     const percentile = 0.5 * (1 + erfValue);
-    return Math.round(percentile * 100 * 10) / 10;
+    return percentile * 100;
 }
+
+function formatToSigFigs(value: number, sigFigs = 2): string {
+    if (value === 0) {
+        return "0";
+    }
+
+    const abs = Math.abs(value);
+
+    // Figure out how many decimal places are needed
+    const digitsBeforeDecimal = Math.floor(Math.log10(abs)) + 1;
+    const decimalPlaces = Math.max(0, sigFigs - digitsBeforeDecimal);
+
+    // Round using toFixed to avoid scientific notation
+    return value.toFixed(decimalPlaces);
+}
+
 
 // Find longest streak
 function findLongestStreak(flips: boolean[]): { value: boolean; length: number } {
@@ -131,10 +147,11 @@ function findLongestStreak(flips: boolean[]): { value: boolean; length: number }
 }
 
 // Find most surprising streak (most extreme deviation from 50%)
-function findMostSurprisingStreak(flips: boolean[]): { heads: number; total: number; percentage: number } {
+function findMostSurprisingStreak(flips: boolean[]): { heads: number; total: number; percentage: number; percentile: number } {
     let maxDeviation = 0;
     let bestHeads = 0;
     let bestTotal = 0;
+    let bestPercentile = 50;
 
     // Scan through different window sizes
     for (let windowSize = 10; windowSize <= Math.min(100, flips.length); windowSize++) {
@@ -144,13 +161,15 @@ function findMostSurprisingStreak(flips: boolean[]): { heads: number; total: num
                 if (flips[j]) heads++;
             }
 
-            const percentage = (heads / windowSize) * 100;
-            const deviation = Math.abs(percentage - 50);
+            const percentile = calculatePercentile(heads, windowSize);
+            // Measure how extreme this result is (distance from median)
+            const deviation = Math.abs(percentile - 50);
 
             if (deviation > maxDeviation) {
                 maxDeviation = deviation;
                 bestHeads = heads;
                 bestTotal = windowSize;
+                bestPercentile = percentile;
             }
         }
     }
@@ -158,7 +177,7 @@ function findMostSurprisingStreak(flips: boolean[]): { heads: number; total: num
     return {
         heads: bestHeads,
         total: bestTotal,
-        percentage: Math.round((bestHeads / bestTotal) * 100 * 10) / 10
+        percentile: bestPercentile
     };
 }
 
@@ -172,7 +191,7 @@ function displayResults(flips: boolean[]): void {
     const count = isHeads ? headsCount : tailsCount;
     const type = isHeads ? "heads" : "tails";
     const percentile = calculatePercentile(count, flips.length);
-    const topPercentile = Math.round((100 - percentile) * 10) / 10;
+    const topPercentile = (100 - percentile);
 
     // Use excited phrases if in top 3% (percentile > 97 or < 3)
     const isTopResult = percentile > 97 || percentile < 3;
@@ -181,7 +200,7 @@ function displayResults(flips: boolean[]): void {
     const overallPhrase = overallPhrases[Math.floor(Math.random() * overallPhrases.length)]
         .replace("{count}", count.toString())
         .replace("{type}", type)
-        .replace("{percentile}", percentile.toString())
+        .replace("{percentile}", formatToSigFigs(percentile))
         .replace("{top}", topPercentile.toString());
 
     document.getElementById("overall-result")!.textContent = overallPhrase;
@@ -189,7 +208,7 @@ function displayResults(flips: boolean[]): void {
     // Longest streak
     const streak = findLongestStreak(flips);
     const streakType = streak.value ? "heads" : "tails";
-    const probability = Math.round(Math.pow(0.5, streak.length) * 100);
+    const probability = Math.pow(0.5, streak.length) * 100;
 
     // Use excited phrases if probability is very low (< 0.1%)
     const isRareStreak = probability < 0.1;
@@ -198,7 +217,7 @@ function displayResults(flips: boolean[]): void {
     const streakPhrase = streakPhrases[Math.floor(Math.random() * streakPhrases.length)]
         .replace("{count}", streak.length.toString())
         .replace("{type}", streakType)
-        .replace("{probability}", probability.toPrecision(3));
+        .replace("{probability}", formatToSigFigs(probability));
 
     document.getElementById("streak-result")!.textContent = streakPhrase;
 
@@ -207,16 +226,15 @@ function displayResults(flips: boolean[]): void {
     const surprisingType = surprising.percentage > 50 ? "heads" : "tails";
     const surprisingCount = surprising.percentage > 50 ? surprising.heads : surprising.total - surprising.heads;
 
-    // Use excited phrases if deviation is extreme (> 20% from 50%)
-    const deviation = Math.abs(surprising.percentage - 50);
-    const isExtremeDeviation = deviation > 20;
-    const surprisingPhrases = isExtremeDeviation ? surprisingPhrasesExcited : surprisingPhrasesRegular;
+    // Use excited phrases if in top 3% (percentile > 97 or < 3)
+    const isExtremeSurprising = surprising.percentile > 97 || surprising.percentile < 3;
+    const surprisingPhrases = isExtremeSurprising ? surprisingPhrasesExcited : surprisingPhrasesRegular;
 
     const surprisingPhrase = surprisingPhrases[Math.floor(Math.random() * surprisingPhrases.length)]
         .replace("{count}", surprisingCount.toString())
         .replace("{type}", surprisingType)
         .replace("{total}", surprising.total.toString())
-        .replace("{percentage}", surprising.percentage.toString());
+        .replace("{percentile}", formatToSigFigs(surprising.percentile));
 
     document.getElementById("surprising-result")!.textContent = surprisingPhrase;
 
