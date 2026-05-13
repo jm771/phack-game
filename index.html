@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P-hack - The Game</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🎲 P-HACK: The Game 🎲</h1>
+        <p class="subtitle">Discover your amazing coin-flipping talents!</p>
+
+        <div id="results">
+            <div class="result-section">
+                <h2>Your Overall Performance</h2>
+                <p id="overall-result"></p>
+            </div>
+
+            <div class="result-section">
+                <h2>Your Incredible Streak</h2>
+                <p id="streak-result"></p>
+            </div>
+
+            <div class="result-section">
+                <h2>Your Craziest Result</h2>
+                <p id="surprising-result"></p>
+            </div>
+        </div>
+
+        <button id="try-again-btn" class="try-again-btn">Try Again? 🔄</button>
+
+        <div class="tosses-container">
+            <h3>All Your Tosses:</h3>
+            <div id="all-tosses" class="tosses"></div>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
