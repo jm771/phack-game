@@ -201,7 +201,7 @@ function displayResults(flips: boolean[]): void {
         .replace("{count}", count.toString())
         .replace("{type}", type)
         .replace("{percentile}", formatToSigFigs(percentile))
-        .replace("{top}", topPercentile.toString());
+        .replace("{top}", formatToSigFigs(topPercentile));
 
     document.getElementById("overall-result")!.textContent = overallPhrase;
 
